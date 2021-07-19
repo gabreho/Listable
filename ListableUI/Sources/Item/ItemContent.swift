@@ -82,6 +82,8 @@ public protocol ItemContent where Coordinator.ItemContentType == Self
      */
     var alwaysReappliesToVisibleView : Bool { get }
     
+    var reappliesToVisibleViewRules : ReappliesToVisibleViewRules { get }
+    
     //
     // MARK: Tracking Changes
     //

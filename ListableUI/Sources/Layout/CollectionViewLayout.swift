@@ -161,8 +161,6 @@ final class CollectionViewLayout : UICollectionViewLayout
         let view = self.collectionView!
         let context = context as! InvalidationContext
         
-        super.invalidateLayout(with: context)
-        
         // Handle Moved Items
         
         self.isReordering = context.interactiveMoveAction != nil
@@ -172,16 +170,23 @@ final class CollectionViewLayout : UICollectionViewLayout
             switch action {
             case .inProgress(let info):
                 if info.from != info.to {
+                    print("Move In Progress \(info)")
                     self.layout.content.move(from: info.from, to: info.to)
                 }
 
-            case .complete(_):
+            case .complete(let info):
+                print("Move Complete: \(info)")
                 break
 
             case .cancelled(let info):
+                print("Move Cancelled: \(info)")
                 self.layout.content.move(from: info.from, to: info.to)
             }
         }
+        
+        // TODO: This might need to move down below the re-order calls; since those change value index paths,
+        // TODO: and the problem is that we're getting an invalid index path
+        super.invalidateLayout(with: context)
         
         // Handle View Width Changing
         

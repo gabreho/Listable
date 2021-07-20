@@ -110,6 +110,8 @@ internal extension ListView
                 toSection: self.presentationState.sections[to.section].model
             )
             
+            print("Committing Move: \(result.from) -> \(result.to)")
+            
             let item = self.presentationState.item(at: to)
             
             let itemHadCallback = item.performDidReorder(with: result)

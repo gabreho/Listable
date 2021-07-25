@@ -38,10 +38,6 @@ final class ListChangesQueue {
                 return
             }
             
-            if oldValue == true && self.isPaused == false {
-                print("Unlocking queue...")
-            }
-            
             self.runIfNeeded()
         }
     }

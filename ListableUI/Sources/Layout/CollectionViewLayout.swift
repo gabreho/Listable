@@ -158,8 +158,6 @@ final class CollectionViewLayout : UICollectionViewLayout
     
     override func invalidateLayout(with context: UICollectionViewLayoutInvalidationContext)
     {
-        print("invalidateLayout(with:)")
-        
         let view = self.collectionView!
         let context = context as! InvalidationContext
         
@@ -172,18 +170,15 @@ final class CollectionViewLayout : UICollectionViewLayout
             switch action {
             case .inProgress(let info):
                 if info.from != info.to {
-                    print("invalidateLayout(with:): Move In Progress \(info)")
                     self.layout.content.move(from: info.from, to: info.to)
                 }
                 
                 self.delegate.listViewShouldBeginQueueingEditsForReorder()
 
             case .complete(let info):
-                print("invalidateLayout(with:): Move Complete: \(info)")
                 self.sendEndQueuingEdits()
 
             case .cancelled(let info):
-                print("invalidateLayout(with:): Move Cancelled: \(info)")
                 self.layout.content.move(from: info.from, to: info.to)
                 self.sendEndQueuingEdits()
             }
@@ -407,7 +402,6 @@ final class CollectionViewLayout : UICollectionViewLayout
         self.performLayoutUpdate()
         
         if self.isReordering == false {
-            print("listViewLayoutDidLayoutContents")
             self.delegate.listViewLayoutDidLayoutContents()
         }
     }

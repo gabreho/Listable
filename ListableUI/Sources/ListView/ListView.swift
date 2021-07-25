@@ -1146,9 +1146,7 @@ public final class ListView : UIView, KeyboardObserverDelegate
             
         let batchUpdates = {
             updateBackingData()
-            
-            print("Changes: \(changes.deletedItems.map { $0.oldIndex })")
-            
+                        
             // Sections
 
             view.deleteSections(IndexSet(changes.deletedSections.map { $0.oldIndex }))

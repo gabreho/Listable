@@ -290,10 +290,16 @@ extension ListView
             view.visibleContent.update(with: view)
         }
         
-        func listViewInvalidatedWithInProgressReordering(_ hasInProgressReorders: Bool) {
+        func listViewShouldBeginQueueingEditsForReorder() {
             guard let view = self.view else { return }
-            
-            view.updateQueue.isPaused = hasInProgressReorders
+
+            view.updateQueue.isPaused = true
+        }
+        
+        func listViewShouldEndQueueingEditsForReorder() {
+            guard let view = self.view else { return }
+
+            view.updateQueue.isPaused = false
         }
 
         // MARK: UIScrollViewDelegate

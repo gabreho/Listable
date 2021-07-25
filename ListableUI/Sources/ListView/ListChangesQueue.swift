@@ -14,6 +14,7 @@ final class ListChangesQueue {
     private var inProgress : Operation? = nil
         
     func add(_ block : @escaping () -> ()) {
+        
         precondition(Thread.isMainThread)
         
         self.add { context in
@@ -22,7 +23,8 @@ final class ListChangesQueue {
         }
     }
     
-    func add(_ block : @escaping (Context) -> ()) {
+    private func add(_ block : @escaping (Context) -> ()) {
+                
         precondition(Thread.isMainThread)
         
         self.waiting.append(.init(block))

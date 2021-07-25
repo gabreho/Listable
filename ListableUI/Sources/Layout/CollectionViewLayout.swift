@@ -175,7 +175,7 @@ final class CollectionViewLayout : UICollectionViewLayout
                 
                 self.delegate.listViewShouldBeginQueueingEditsForReorder()
 
-            case .complete(let info):
+            case .complete(_):
                 self.sendEndQueuingEdits()
 
             case .cancelled(let info):

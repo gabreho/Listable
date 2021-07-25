@@ -8,39 +8,46 @@
 import Foundation
 
 
+///
+///
+///
 final class ListChangesQueue {
-    
-    private var waiting : [Operation] = []
-    private var inProgress : Operation? = nil
         
-    func add(_ block : @escaping () -> ()) {
-        
-        precondition(Thread.isMainThread)
-        
-        self.add { context in
+    /// Adds a synchronous block to the queue, marked as done once the block exits.
+    func addSync(_ block : @escaping () -> ()) {
+        self.addAsync { context in
             block()
             context.setCompleted()
         }
     }
     
-    private func add(_ block : @escaping (Context) -> ()) {
-                
-        precondition(Thread.isMainThread)
-        
+    /// Adds an async block to the queue, marked as done once the provided context is marked as complete.
+    /// When using this method, you must call `Context.setCompleted()`, otherwise the queue will never proceed.
+    func addAsync(_ block : @escaping (Context) -> ()) {
         self.waiting.append(.init(block))
-        
         self.runIfNeeded()
     }
     
+    /// Prevents processing other events in the queue.
+    ///
+    /// ### Note
+    /// This is currently only used in one place; to stop processing during
+    /// reorder events. If multiple places need to set this value, update to use a safer
+    /// method to account for multiple stop points over a single bool; such as a counter-based
+    /// method (`beginPausing`), or counter-based objects for each call site.
     var isPaused : Bool = false {
         didSet {
-            guard oldValue != self.isPaused else {
-                return
-            }
+            if oldValue == self.isPaused { return }
             
             self.runIfNeeded()
         }
     }
+    
+    /// Operations waiting to execute.
+    private var waiting : [Operation] = []
+    
+    /// The current in-progress operation.
+    private var inProgress : Operation? = nil
     
     // TODO: Needs to be idempotent
     private func runIfNeeded() {
@@ -113,7 +120,7 @@ extension ListChangesQueue {
         
         private var state : State
         
-        init(_ onFinish : @escaping () -> ()) {
+        fileprivate init(_ onFinish : @escaping () -> ()) {
             self.state = .new(.init(onFinish: onFinish))
         }
         

@@ -688,7 +688,12 @@ public final class ListView : UIView, KeyboardObserverDelegate
     
     public func configure(with properties : ListProperties)
     {
-        self.updateQueue.add { [weak self] in
+        /// We enqueue these changes into the update queue to ensure they are not applied
+        /// before it is safe to do so. Currently, "safe" means "during the application of a reorder".
+        ///
+        /// See `CollectionViewLayout.sendEndQueuingEdits()` for more.
+        
+        self.updateQueue.addSync { [weak self] in
             guard let self = self else { return }
             
             let animated = properties.animatesChanges

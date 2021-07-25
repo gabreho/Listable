@@ -61,8 +61,8 @@ public final class ListView : UIView, KeyboardObserverDelegate
         
         self.collectionView.isPrefetchingEnabled = false
         
-        self.collectionView.dataSource = self.dataSource
         self.collectionView.delegate = self.delegate
+        self.collectionView.dataSource = self.dataSource
         
         // Super init.
         

@@ -189,7 +189,7 @@ final class CollectionViewLayout : UICollectionViewLayout
         // Handle View Width Changing
         
         context.viewPropertiesChanged = self.viewProperties != CollectionViewLayoutProperties(collectionView: view)
-                
+        
         // Update Needed Layout Type
                 
         self.neededLayoutType.merge(with: context)
@@ -255,7 +255,7 @@ final class CollectionViewLayout : UICollectionViewLayout
         previousIndexPaths: [IndexPath],
         movementCancelled: Bool
     ) -> UICollectionViewLayoutInvalidationContext
-    {        
+    {
         let context = super.invalidationContextForEndingInteractiveMovementOfItems(
             toFinalIndexPaths: indexPaths,
             previousIndexPaths: previousIndexPaths,

@@ -16,6 +16,7 @@ class ListChangesQueueTests : XCTestCase {
         let queue = ListChangesQueue()
         
         
+        XCTFail()
     }
     
     func test_addASync() {
@@ -23,11 +24,13 @@ class ListChangesQueueTests : XCTestCase {
         let queue = ListChangesQueue()
 
         
+        XCTFail()
     }
     
     func test_isPaused() {
         
         let queue = ListChangesQueue()
         
+        XCTFail()
     }
 }

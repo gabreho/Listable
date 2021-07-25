@@ -691,7 +691,7 @@ public final class ListView : UIView, KeyboardObserverDelegate
         /// We enqueue these changes into the update queue to ensure they are not applied
         /// before it is safe to do so. Currently, "safe" means "during the application of a reorder".
         ///
-        /// See `CollectionViewLayout.sendEndQueuingEdits()` for more.
+        /// See `CollectionViewLayout.sendEndQueuingEditsAfterDelay()` for more.
         
         self.updateQueue.addSync { [weak self] in
             guard let self = self else { return }
@@ -1151,7 +1151,7 @@ public final class ListView : UIView, KeyboardObserverDelegate
             
         let batchUpdates = {
             updateBackingData()
-                        
+            
             // Sections
 
             view.deleteSections(IndexSet(changes.deletedSections.map { $0.oldIndex }))

@@ -8,9 +8,8 @@
 import Foundation
 
 
-///
-///
-///
+/// Used to queue updates into a list view.
+/// Note: This type is only safe to use from the main thread.
 final class ListChangesQueue {
         
     /// Adds a synchronous block to the queue, marked as done once the block exits.
@@ -44,12 +43,12 @@ final class ListChangesQueue {
     }
     
     /// Operations waiting to execute.
-    private var waiting : [Operation] = []
+    private(set) var waiting : [Operation] = []
     
     /// The current in-progress operation.
-    private var inProgress : Operation? = nil
+    private(set) var inProgress : Operation? = nil
     
-    // TODO: Needs to be idempotent
+    /// Invoked to continue processing queue events.
     private func runIfNeeded() {
         precondition(Thread.isMainThread)
         
@@ -94,9 +93,9 @@ final class ListChangesQueue {
 
 extension ListChangesQueue {
     
-    fileprivate final class Operation {
+    final class Operation {
         
-        var state : State
+        fileprivate(set) var state : State
         
         init(_ body : @escaping (Context) -> ()) {
             self.state = .new(.init(body: body))

@@ -138,6 +138,10 @@ fileprivate struct PaymentTypeHeader : BlueprintHeaderFooterContent, Equatable {
         }
         .inset(uniform: 15.0)
     }
+    
+    var background: Element? {
+        Box(backgroundColor: .white)
+    }
 }
 
 fileprivate struct EmptyRow : BlueprintItemContent, Equatable {

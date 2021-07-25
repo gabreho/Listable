@@ -158,6 +158,8 @@ final class CollectionViewLayout : UICollectionViewLayout
     
     override func invalidateLayout(with context: UICollectionViewLayoutInvalidationContext)
     {
+        print("invalidateLayout(with:)")
+        
         let view = self.collectionView!
         let context = context as! InvalidationContext
         
@@ -170,28 +172,36 @@ final class CollectionViewLayout : UICollectionViewLayout
             switch action {
             case .inProgress(let info):
                 if info.from != info.to {
-                    print("Move In Progress \(info)")
+                    print("invalidateLayout(with:): Move In Progress \(info)")
                     self.layout.content.move(from: info.from, to: info.to)
                 }
+                
+                self.delegate.listViewInvalidatedWithInProgressReordering(true)
 
             case .complete(let info):
-                print("Move Complete: \(info)")
+                print("invalidateLayout(with:): Move Complete: \(info)")
+                
+                OperationQueue.main.addOperation {
+                    self.delegate.listViewInvalidatedWithInProgressReordering(false)
+                }
+                
                 break
 
             case .cancelled(let info):
-                print("Move Cancelled: \(info)")
+                print("invalidateLayout(with:): Move Cancelled: \(info)")
                 self.layout.content.move(from: info.from, to: info.to)
             }
+        } else {
+            print("invalidateLayout(with:): No Active Move")
+            print(context.targetIndexPathsForInteractivelyMovingItems as Any)
         }
         
-        // TODO: This might need to move down below the re-order calls; since those change value index paths,
-        // TODO: and the problem is that we're getting an invalid index path
         super.invalidateLayout(with: context)
         
         // Handle View Width Changing
         
         context.viewPropertiesChanged = self.viewProperties != CollectionViewLayoutProperties(collectionView: view)
-        
+                
         // Update Needed Layout Type
                 
         self.neededLayoutType.merge(with: context)
@@ -228,7 +238,7 @@ final class CollectionViewLayout : UICollectionViewLayout
         previousIndexPaths: [IndexPath],
         movementCancelled: Bool
     ) -> UICollectionViewLayoutInvalidationContext
-    {
+    {        
         let context = super.invalidationContextForEndingInteractiveMovementOfItems(
             toFinalIndexPaths: indexPaths,
             previousIndexPaths: previousIndexPaths,
@@ -377,6 +387,7 @@ final class CollectionViewLayout : UICollectionViewLayout
         self.performLayoutUpdate()
         
         if self.isReordering == false {
+            print("listViewLayoutDidLayoutContents")
             self.delegate.listViewLayoutDidLayoutContents()
         }
     }
@@ -646,6 +657,8 @@ public protocol CollectionViewLayoutDelegate : AnyObject
     ) -> ListLayoutContent
     
     func listViewLayoutDidLayoutContents()
+    
+    func listViewInvalidatedWithInProgressReordering(_ hasInProgressReorders : Bool)
 }
 
 

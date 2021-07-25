@@ -60,7 +60,7 @@ public final class ListView : UIView, KeyboardObserverDelegate
         self.stateObserver = ListStateObserver()
         
         self.collectionView.isPrefetchingEnabled = false
-                
+        
         self.collectionView.dataSource = self.dataSource
         self.collectionView.delegate = self.delegate
         
@@ -684,25 +684,31 @@ public final class ListView : UIView, KeyboardObserverDelegate
         self.configure(with: description)
     }
     
+    let updateQueue = ListChangesQueue()
+    
     public func configure(with properties : ListProperties)
     {
-        let animated = properties.animatesChanges
-        
-        self.appearance = properties.appearance
-        self.behavior = properties.behavior
-        self.autoScrollAction = properties.autoScrollAction
-        self.scrollIndicatorInsets = properties.scrollIndicatorInsets
-        self.collectionView.accessibilityIdentifier = properties.accessibilityIdentifier
-        self.debuggingIdentifier = properties.debuggingIdentifier
-        self.actions = properties.actions
+        self.updateQueue.add { [weak self] in
+            guard let self = self else { return }
+            
+            let animated = properties.animatesChanges
+            
+            self.appearance = properties.appearance
+            self.behavior = properties.behavior
+            self.autoScrollAction = properties.autoScrollAction
+            self.scrollIndicatorInsets = properties.scrollIndicatorInsets
+            self.collectionView.accessibilityIdentifier = properties.accessibilityIdentifier
+            self.debuggingIdentifier = properties.debuggingIdentifier
+            self.actions = properties.actions
 
-        self.stateObserver = properties.stateObserver
-        
-        self.environment = properties.environment
-        
-        self.set(layout: properties.layout, animated: animated)
-        
-        self.setContent(animated: animated, properties.content)
+            self.stateObserver = properties.stateObserver
+            
+            self.environment = properties.environment
+            
+            self.set(layout: properties.layout, animated: animated)
+            
+            self.setContent(animated: animated, properties.content)
+        }
     }
     
     private func setContentFromSource(animated : Bool = false)

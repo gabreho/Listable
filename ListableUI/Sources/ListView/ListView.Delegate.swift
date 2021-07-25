@@ -10,7 +10,7 @@ extension ListView
 {
     final class Delegate : NSObject, UICollectionViewDelegate, CollectionViewLayoutDelegate
     {
-        unowned var view : ListView!
+        unowned var view : ListView?
         unowned var presentationState : PresentationState!
         unowned var layoutManager : LayoutManager!
         
@@ -23,6 +23,8 @@ extension ListView
         
         func collectionView(_ collectionView: UICollectionView, shouldHighlightItemAt indexPath: IndexPath) -> Bool
         {
+            guard let view = self.view else { return false }
+            
             guard view.behavior.selectionMode != .none else { return false }
             
             let item = self.presentationState.item(at: indexPath)
@@ -32,20 +34,26 @@ extension ListView
         
         func collectionView(_ collectionView: UICollectionView, didHighlightItemAt indexPath: IndexPath)
         {
+            guard let view = self.view else { return }
+            
             let item = self.presentationState.item(at: indexPath)
             
-            item.applyToVisibleCell(with: self.view.environment)
+            item.applyToVisibleCell(with: view.environment)
         }
         
         func collectionView(_ collectionView: UICollectionView, didUnhighlightItemAt indexPath: IndexPath)
         {
+            guard let view = self.view else { return }
+            
             let item = self.presentationState.item(at: indexPath)
             
-            item.applyToVisibleCell(with: self.view.environment)
+            item.applyToVisibleCell(with: view.environment)
         }
         
         func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool
         {
+            guard let view = self.view else { return false }
+            
             guard view.behavior.selectionMode != .none else { return false }
             
             let item = self.presentationState.item(at: indexPath)
@@ -60,17 +68,19 @@ extension ListView
         
         func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath)
         {
+            guard let view = self.view else { return }
+            
             let item = self.presentationState.item(at: indexPath)
             
             item.set(isSelected: true, performCallbacks: true)
-            item.applyToVisibleCell(with: self.view.environment)
+            item.applyToVisibleCell(with: view.environment)
             
             self.performOnSelectChanged()
             
             if item.anyModel.selectionStyle == .tappable {
                 item.set(isSelected: false, performCallbacks: true)
                 collectionView.deselectItem(at: indexPath, animated: true)
-                item.applyToVisibleCell(with: self.view.environment)
+                item.applyToVisibleCell(with: view.environment)
                 
                 self.performOnSelectChanged()
             }
@@ -78,10 +88,12 @@ extension ListView
         
         func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath)
         {
+            guard let view = self.view else { return }
+            
             let item = self.presentationState.item(at: indexPath)
             
             item.set(isSelected: false, performCallbacks: true)
-            item.applyToVisibleCell(with: self.view.environment)
+            item.applyToVisibleCell(with: view.environment)
             
             self.performOnSelectChanged()
         }
@@ -89,6 +101,8 @@ extension ListView
         private var oldSelectedItems : Set<AnyIdentifier> = []
         
         private func performOnSelectChanged() {
+            
+            guard let view = self.view else { return }
             
             let old = self.oldSelectedItems
             
@@ -100,10 +114,10 @@ extension ListView
             
             self.oldSelectedItems = new
             
-            ListStateObserver.perform(self.view.stateObserver.onSelectionChanged, "Selection Changed", with: self.view) {
+            ListStateObserver.perform(view.stateObserver.onSelectionChanged, "Selection Changed", with: view) {
                 ListStateObserver.SelectionChanged(
                     actions: $0,
-                    positionInfo: self.view.scrollPositionInfo,
+                    positionInfo: view.scrollPositionInfo,
                     old: old,
                     new: new
                 )
@@ -147,6 +161,8 @@ extension ListView
             at indexPath: IndexPath
             )
         {
+            guard let view = self.view else { return }
+            
             let container = anyView as! SupplementaryContainerView
             let kind = SupplementaryKind(rawValue: kindString)!
             
@@ -242,46 +258,66 @@ extension ListView
         
         func listViewLayoutUpdatedItemPositions()
         {
+            guard let view = self.view else { return }
+            
             /// During reordering; our index paths will not match the index paths of the collection view;
             /// our index paths are not updated until the move is committed.
             if self.layoutManager.collectionViewLayout.isReordering {
                 return
             }
             
-            self.view.setPresentationStateItemPositions()
+            view.setPresentationStateItemPositions()
         }
         
         func listLayoutContent(
             defaults: ListLayoutDefaults
         ) -> ListLayoutContent
         {
-            self.presentationState.toListLayoutContent(
+            guard let view = self.view else {
+                fatalError("Was asked for content without a valid view.")
+            }
+            
+            return self.presentationState.toListLayoutContent(
                 defaults: defaults,
-                environment: self.view.environment
+                environment: view.environment
             )
         }
         
         func listViewLayoutDidLayoutContents()
         {
-            self.view.visibleContent.update(with: self.view)
+            guard let view = self.view else { return }
+            
+            view.visibleContent.update(with: view)
+        }
+        
+        func listViewInvalidatedWithInProgressReordering(_ hasInProgressReorders: Bool) {
+            guard let view = self.view else { return }
+            
+            view.updateQueue.isPaused = hasInProgressReorders
         }
 
         // MARK: UIScrollViewDelegate
         
         func scrollViewWillBeginDragging(_ scrollView: UIScrollView)
         {
-            self.view.liveCells.perform {
+            guard let view = self.view else { return }
+            
+            view.liveCells.perform {
                 $0.closeSwipeActions()
             }
         }
         
         func scrollViewDidEndDecelerating(_ scrollView: UIScrollView)
         {
-            self.view.updatePresentationState(for: .didEndDecelerating)
+            guard let view = self.view else { return }
+            
+            view.updatePresentationState(for: .didEndDecelerating)
         }
                 
         func scrollViewShouldScrollToTop(_ scrollView: UIScrollView) -> Bool
         {
+            guard let view = self.view else { return true }
+            
             switch view.behavior.scrollsToTop {
             case .disabled: return false
             case .enabled: return true
@@ -290,13 +326,16 @@ extension ListView
         
         func scrollViewDidScrollToTop(_ scrollView: UIScrollView)
         {
-            self.view.updatePresentationState(for: .scrolledToTop)
+            guard let view = self.view else { return }
+            
+            view.updatePresentationState(for: .scrolledToTop)
         }
         
         private var lastPosition : CGFloat = 0.0
         
         func scrollViewDidScroll(_ scrollView: UIScrollView)
         {
+            guard let view = self.view else { return }
             guard scrollView.bounds.size.height > 0 else { return }
                         
             SignpostLogger.log(.begin, log: .scrollView, name: "scrollViewDidScroll", for: self.view)
@@ -312,13 +351,13 @@ extension ListView
             self.lastPosition = scrollView.contentOffset.y
             
             if scrollingDown {
-                self.view.updatePresentationState(for: .scrolledDown)
+                view.updatePresentationState(for: .scrolledDown)
             }
             
-            ListStateObserver.perform(self.view.stateObserver.onDidScroll, "Did Scroll", with: self.view) {
+            ListStateObserver.perform(view.stateObserver.onDidScroll, "Did Scroll", with: view) {
                 ListStateObserver.DidScroll(
                     actions: $0,
-                    positionInfo: self.view.scrollPositionInfo
+                    positionInfo: view.scrollPositionInfo
                 )
             }
         }

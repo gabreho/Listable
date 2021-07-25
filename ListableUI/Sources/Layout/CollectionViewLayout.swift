@@ -176,11 +176,11 @@ final class CollectionViewLayout : UICollectionViewLayout
                 self.delegate.listViewShouldBeginQueueingEditsForReorder()
 
             case .complete(_):
-                self.sendEndQueuingEdits()
+                self.sendEndQueuingEditsAfterDelay()
 
             case .cancelled(let info):
                 self.layout.content.move(from: info.from, to: info.to)
-                self.sendEndQueuingEdits()
+                self.sendEndQueuingEditsAfterDelay()
             }
         }
         
@@ -195,8 +195,9 @@ final class CollectionViewLayout : UICollectionViewLayout
         self.neededLayoutType.merge(with: context)
     }
     
-    private func sendEndQueuingEdits() {
+    private func sendEndQueuingEditsAfterDelay() {
         
+        ///
         /// Hello! Welcome to the source code. You're probably wondering why this perform after runloop hack is here.
         ///
         /// Well, it is because `UICollectionView` does not play well with removals that occur synchronously
@@ -205,17 +206,18 @@ final class CollectionViewLayout : UICollectionViewLayout
         /// Please, consider the following:
         ///
         /// 1) A user begins dragging an item.
-        /// 2) They drop the item at the last point in the list; (2,1).
+        /// 2) They drop the item at the last point in the list; (2,1). The collection view records this index path (2,1).
         /// 3) Via `collectionView(_:moveItemAt:to:)`, we notify the observer(s) of the change.
         /// 4) Synchronously via that notification, they remove the item at (2,0), moving the item now at (2,1) to (2,0).
         ///
-        /// Unfortunately, this causes `super.invalidateLayout(with: context)` to fail with an invalid
+        /// Unfortunately, this causes `super.invalidateLayout(with: context)` to then fail with an invalid
         /// index path; because it seems to take one runloop to let the reorder "settle" through the collection view –
         /// most notably, the `context.targetIndexPathsForInteractivelyMovingItems` contains an
         /// invalid index path – the item which was previously at (2,1) is still there, when it should now be at (2,0).
         ///
         /// So thus, we queue updates a runloop to let the collection view figure its internal state out before we begin
-        /// processing any further updates.
+        /// processing any further updates 🥴.
+        /// 
         
         OperationQueue.main.addOperation {
             self.delegate.listViewShouldEndQueueingEditsForReorder()
